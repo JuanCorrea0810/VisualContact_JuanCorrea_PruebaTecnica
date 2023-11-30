@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 using WebHook_Notifications;
 using WebHook_Notifications.Services;
@@ -47,7 +48,8 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddScoped<IRepositoryNotification, RepositoryNotification>();
-
+// Registramos el servicio que nos va a ayudar a Loggear
+builder.Services.AddScoped<IMyLogger, CustomLogger>();
 
 var app = builder.Build();
 

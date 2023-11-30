@@ -30,9 +30,13 @@ namespace WebService_Notification.Services
         /// <returns>Devuelve 1 si la operación sale exitosa, devuelve 0 si falla</returns>
         public async Task<int> InserData(NotificationDTO data)
         {
+            //VAMOS A EMPEZAR UNA TRANSACCIÓN PARA QUE SI EN ALGÚN MOMENTO UNA DE LAS INSERCIONES FALLA
+            //SE PUEDA REVERTIR LA OPERACIÓN Y ASÍ NO HAYA DATA INCONSISTENTE O INCOMPLETA
             using var transaction = context.Database.BeginTransaction();
             try
             {
+                // TODAS LAS OPERACIONES LAS VAMOS A HACER UTILIZANDO LOS PROCEDIMIENTOS ALMACENADOS CREADOS EN LA BASE DE DATOS
+                
                 //Insertar Notification
                 var notificationParameters = new List<SqlParameter>()
                 {
@@ -45,11 +49,11 @@ namespace WebService_Notification.Services
                 //Insertar Status
                 var statusParameters = new List<SqlParameter>()
                 {
-                new SqlParameter("@status",data.Status.status),
-                new SqlParameter("@Reason",data.Status.Reason),
-                new SqlParameter("@Message",data.Status.Message),
-                new SqlParameter("@Date",data.Status.Date),
-                new SqlParameter("@IdNotification",data.RequestId)
+                    new SqlParameter("@status",data.Status.status),
+                    new SqlParameter("@Reason",data.Status.Reason),
+                    new SqlParameter("@Message",data.Status.Message),
+                    new SqlParameter("@Date",data.Status.Date),
+                    new SqlParameter("@IdNotification",data.RequestId)
                 };
                 //Llamamos el procemiento almacenado para insertar Status
                 await context.Database.ExecuteSqlRawAsync("EXEC InsertStatus @status,@Reason,@Message,@Date,@IdNotification", statusParameters);
@@ -84,6 +88,7 @@ namespace WebService_Notification.Services
                     new SqlParameter("@IdPayer",data.Request.Payer.Document)
                 };
 
+                // Esta variable la vamos a utilizar como variable de salida, ya que es un valor que nos devuelve el procedimiento almacenado
                 var IdRequest_OUTPUT = new SqlParameter("@IdRequest_OUTPUT", SqlDbType.Int)
                 {
                     Direction = ParameterDirection.Output
@@ -103,15 +108,15 @@ namespace WebService_Notification.Services
                 foreach (var field in data.Request.Fields)
                 {
                     var fieldsParameters = new List<SqlParameter>()
-                {
-                    new SqlParameter("@KeyWord",field.Keyword),
-                    new SqlParameter("@Value",field.Value),
-                    new SqlParameter("@DisplayOn",field.DisplayOn),
-                    new SqlParameter("@IdRequest",IdRequest)
-                };
+                    {
+                        new SqlParameter("@KeyWord",field.Keyword),
+                        new SqlParameter("@Value",field.Value),
+                        new SqlParameter("@DisplayOn",field.DisplayOn),
+                        new SqlParameter("@IdRequest",IdRequest)
+                    };
                     await context.Database.ExecuteSqlRawAsync("EXEC InsertFields @KeyWord,@Value,@DisplayOn,@IdRequest", fieldsParameters);
                 }
-                //Comprobamos que el Payment que nos manden no esté ya registrado en la base de datos
+                //Comprobamos que el Payment que nos manden no esté ya registrado en la base de datos, de lo contrario significa que hay inconsistencias
                 var paymentAlreadyExists = await context.Payment.AnyAsync(x => x.Reference == data.Request.Payment.Reference);
                 if (paymentAlreadyExists)
                 {
@@ -138,7 +143,7 @@ namespace WebService_Notification.Services
                     new SqlParameter("@Total",data.Request.Payment.Amount.Total),
                     new SqlParameter("@IdPayment",data.Request.Payment.Reference)
                 };
-
+                //Variable de salida que nos devuelve el procedimiento almacenado
                 var IdAmount_OUTPUT = new SqlParameter("@IdAmount_OUTPUT", SqlDbType.Int)
                 {
                     Direction = ParameterDirection.Output
@@ -231,18 +236,22 @@ namespace WebService_Notification.Services
                     }
 
                 }
+                // Si todo salió bien entonces podemos guardar todos los nuevos datos, terminando la transacción
                 await transaction.CommitAsync();
             }
             catch (Exception e)
             {
+                // Si hay algún error dentro de la transacción entonces revertirmos los cambios, y regresamos 0 que indica que algo salió mal
                 transaction.Rollback();
                 return 0;
             }
+            // Si todo salió bien regresamos 1s
             return 1;
 
         }
         public async Task<NotificationDTO> GetNotification(int RequestId)
         {
+            // PARA LA RECUPERACIÓN DE DATOS TAMBIÉN VAMOS A UTILIZAR LOS PROCEDIMIENTOS ALMACENADOS
             var existNotification = await context.Notification.AnyAsync(x => x.RequestId == RequestId);
             if (!existNotification)
             {

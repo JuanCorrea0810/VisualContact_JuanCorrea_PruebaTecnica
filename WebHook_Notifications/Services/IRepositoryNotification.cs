@@ -15,15 +15,18 @@ namespace WebHook_Notifications.Services
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
+        private readonly IMyLogger logger;
 
-        public RepositoryNotification(ApplicationDbContext context, IMapper mapper)
+        public RepositoryNotification(ApplicationDbContext context, IMapper mapper,IMyLogger logger)
         {
             this.context = context;
             this.mapper = mapper;
+            this.logger = logger;
         }
 
         public async Task InsertData(NotificationDTO data) 
         {
+            //Guardamos en la base de datos
             var Notification = mapper.Map<NotificationDB>(data);
             var Transaction = mapper.Map<TransactionDB>(data);
             var Payer = mapper.Map<PayerDB>(data);
@@ -38,6 +41,9 @@ namespace WebHook_Notifications.Services
             context.Add(Notification);
 
             await context.SaveChangesAsync();
+
+            //Guardamos en el archivo .log
+            await logger.SaveData(Payer,Notification,Transaction);
         }
 
         public async Task<bool> ExistsId(int RequestId) 

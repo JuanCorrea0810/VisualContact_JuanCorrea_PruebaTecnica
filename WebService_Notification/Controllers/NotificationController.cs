@@ -58,7 +58,6 @@ namespace WebService_Notification.Controllers
         public async Task<ActionResult<NotificationDTO>> GetById([FromRoute] int RequestId)
         {
             var response = await repository.GetNotification(RequestId);
-            //Si response es null significa que no hay ningún registro con dicho Id
             if (response is null)
             {
                 return NotFound();

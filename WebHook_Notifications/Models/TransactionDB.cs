@@ -9,6 +9,7 @@
         public string PaymentMethod { get; set; }
         public string IssuerName { get; set; }
         public double Value { get; set; }
+        public string PayerId { get; set; }
         public virtual NotificationDB Notification { get; set; }
         public virtual PayerDB Payer { get; set; }
     }

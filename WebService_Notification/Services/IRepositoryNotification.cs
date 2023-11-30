@@ -312,11 +312,7 @@ namespace WebService_Notification.Services
         public async Task<bool> IdAlreadyExists(int RequestId)
         {
             var resultado = await context.Notification.AnyAsync(x => x.RequestId == RequestId);
-            if (resultado)
-            {
-                return true;
-            }
-            return false;
+            return resultado;
         }
     }
 }

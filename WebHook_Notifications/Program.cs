@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using WebHook_Notifications;
+using WebHook_Notifications.Services;
 
 IConfiguration configuration;
 
@@ -44,6 +45,9 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin();
     });
 });
+
+builder.Services.AddScoped<IRepositoryNotification, RepositoryNotification>();
+
 
 var app = builder.Build();
 

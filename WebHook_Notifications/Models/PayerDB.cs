@@ -10,8 +10,7 @@ namespace WebHook_Notifications.Models
         public string Surname { get; set; }
         public string Email { get; set; }
         public string Mobile { get; set; }
-        public int TransactionId { get; set; }
-        public virtual TransactionDB Transaction { get; set; }
+        public virtual List<TransactionDB> Transactions { get; set; }
 
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using WebService_Notification;
 
 IConfiguration configuration;
 
@@ -23,6 +24,12 @@ builder.Services.AddControllers().AddNewtonsoftJson().
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+//Agregamos el DbContext
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseSqlServer(configuration.GetConnectionString("MyDB"));
+});
 
 
 //Agregamos el AutoMapper que nos va a ayudar a mapear lo que nos manden en las peticiones HTTP hacia la base de datos

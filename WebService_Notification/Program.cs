@@ -48,6 +48,12 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddScoped<IRepositoryNotification, RepositoryNotification>();
+
+//Utilizamos el HTTPClient que nos va a ayudar a comunicarnos automáticamente con el WebHook
+builder.Services.AddHttpClient("Notification", opciones =>
+{
+    opciones.BaseAddress = new Uri("https://localhost:7160/WebHook/Notification"); // Esta es la url a la que el webHook está activamente escuchando
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

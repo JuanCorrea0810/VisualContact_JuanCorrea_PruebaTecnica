@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
 using WebService_Notification.Models.DTOs;
 using WebService_Notification.Services;
 
@@ -9,9 +10,12 @@ namespace WebService_Notification.Controllers
     public class NotificationController : ControllerBase
     {
         private readonly IRepositoryNotification repository;
+        private readonly HttpClient _httpClient;
 
-        public NotificationController(IRepositoryNotification repository)
+        public NotificationController(IRepositoryNotification repository, IHttpClientFactory httpClientFactory)
         {
+            // El httpClient que nos va a servir para enviar las notificaciones al webhook
+            _httpClient = httpClientFactory.CreateClient("Notification");
             this.repository = repository;
         }
         [HttpPost]
@@ -41,6 +45,11 @@ namespace WebService_Notification.Controllers
             {
                 return BadRequest();
             }
+
+            //Mandar notificación al WebHook
+            // En este caso estamos suscribiendo manualmente nuestro webhook a esta API
+            // Pero si queremos suscribir varias URLs entonces se podría optar por otro método como utilizar RabbitMQ
+            using var respuesta = await _httpClient.PostAsJsonAsync(_httpClient.BaseAddress, notificationDTO);
 
             return CreatedAtRoute("GetById", new { RequestId = notificationDTO.RequestId }, notificationDTO);
         }

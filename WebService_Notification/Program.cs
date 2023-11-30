@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using WebService_Notification;
+using WebService_Notification.Services;
 
 IConfiguration configuration;
 
@@ -45,6 +46,8 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin();
     });
 });
+
+builder.Services.AddScoped<IRepositoryNotification, RepositoryNotification>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
